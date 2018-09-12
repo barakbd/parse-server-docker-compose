@@ -15,6 +15,7 @@ services:
       # - ./config:parse-server/config
     ports:
       - 1337:1337
+      # long syntax
       # - target: ${PORT}
       #   published: ${PORT}
       #   protocol: tcp
@@ -72,3 +73,4 @@ services:
 networks:
   backend:
 
+# sudo docker-compose up --force-recreate
