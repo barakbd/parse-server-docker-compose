@@ -3,7 +3,7 @@ cloud/*
 config/*
 
 # mongo
-db/*
+mongo/data/*
 
 # Logs
 logs

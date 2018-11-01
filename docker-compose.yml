@@ -52,25 +52,21 @@ services:
       - .env
     ports:
       - 27018:27017
-    # volumes:
-    #   - ./db:/data/db
+    volumes:
+      - ./mongo/data/db:/data/db
+      - ./mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d
     networks:
       - backend
 
 
-
-# sudo docker-compose up --force-recreate
-
-
-
-# sudo docker run -it --rm --name mongo-3.6 \
+# sudo docker run -it --rm --name run-mongo-3.6 \
 # --env-file .env \
-# -v $(pwd)/db:/data/db \
-# -p 27018:27017 \
+# -v $(pwd)/mongo-entrypoint-initdb:/docker-entrypoint-initdb.d \
+# -p 27019:27017 \
 # mongo:3.6
+# -v $(pwd)/db:/data/db \
 
 
 networks:
   backend:
 
-# sudo docker-compose up --force-recreate
