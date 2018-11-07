@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 
 services:
 
@@ -20,8 +20,8 @@ services:
       #   published: ${PORT}
       #   protocol: tcp
       #   mode: host
-    networks:
-      - backend
+    # networks:
+    #   - backend
     depends_on:
       - mongo
     # healthcheck:
@@ -51,12 +51,18 @@ services:
     env_file:
       - .env
     ports:
-      - 27018:27017
+      # - 27019:27017
+      - target: 27017 # inside container
+        published: 27018
+        protocol: tcp # tcp / udp
+        mode: ingress # use ingress for swarm load balancing
+
     volumes:
-      - ./mongo/data/db:/data/db
-      - ./mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d
-    networks:
-      - backend
+      # - ./mongo/data/db:/data/db
+      # - ./mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d
+      - ./mongo/docker-entrypoint-initdb:/scripts/
+    # networks:
+    #   - backend
 
 
 # sudo docker run -it --rm --name run-mongo-3.6 \
@@ -67,6 +73,6 @@ services:
 # -v $(pwd)/db:/data/db \
 
 
-networks:
-  backend:
+# networks:
+#   backend:
 
