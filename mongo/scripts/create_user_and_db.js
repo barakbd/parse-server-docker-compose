@@ -1,6 +1,5 @@
 // var db is automatically set from env var MONGO_INITDB_DATABASE - https://hub.docker.com/_/mongo/
-printjson(db); 
-
+printjson("using db - " + db); 
 db.createUser(
     {
         user: MONGO_INITDB_DATABASE_OWNER,
@@ -9,5 +8,5 @@ db.createUser(
     }
 )
 db = db.getSiblingDB(MONGO_INITDB_DATABASE)
-
+printjson("using db - " + db); 
 db.createCollection(MONGO_INITDB_DATABASE_COLLECTION)
