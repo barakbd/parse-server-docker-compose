@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 
 services:
 
@@ -51,26 +51,21 @@ services:
     env_file:
       - .env
     ports:
-      - 27018:27017
-    # volumes:
-    #   - ./db:/data/db
+      # - 27019:27017
+      - target: 27017 # inside container
+        published: 27018
+        protocol: tcp # tcp / udp
+        mode: ingress # use ingress for swarm load balancing
+
+    volumes:
+      # - ./mongo/data/db:/data/db
+      - ./mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d
+      - ./mongo/scripts:/scripts/
     networks:
       - backend
 
-
-
-# sudo docker-compose up --force-recreate
-
-
-
-# sudo docker run -it --rm --name mongo-3.6 \
-# --env-file .env \
-# -v $(pwd)/db:/data/db \
-# -p 27018:27017 \
-# mongo:3.6
+# docker run -it --rm --name mongo-3.6 --env-file .env -p 27018:27017 -v $(pwd)/mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d -v $(pwd)/mongo/scripts:/scripts mongo:3.6
 
 
 networks:
   backend:
-
-# sudo docker-compose up --force-recreate
