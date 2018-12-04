@@ -1,29 +1,27 @@
-version: '3.2'
+version: "3.2"
 
 services:
-
-  #service parse-server
+  # ------------- service parse-server -----------------------
   parse-server:
     container_name: parse-server
-    image: barakbd/parse-server:test
+    image: barakbd/parse-server:3-alpine
     env_file: #not really needed as docker compose looks for .env by default
       - .env
-    environment: 
-      NODE_ENV: ${NODE_ENV}
-    # volumes: 
-      # - ./cloud:/parse-server/cloud
-      # - ./config:parse-server/config
+    # volumes:
+    # - ./parse/cloud:/parse-server/cloud
+    # - ./parse/config:parse-server/config
     ports:
-      - 1337:1337
+      # short syntax
+      # - 1337:1337
       # long syntax
-      # - target: ${PORT}
-      #   published: ${PORT}
-      #   protocol: tcp
-      #   mode: host
+      - target: 1337
+        published: 1337
+        protocol: tcp
+        mode: host
     networks:
-      - backend
+      - parse-server
     depends_on:
-      - mongo
+      - mongo_36
     # healthcheck:
     #   test: ["CMD", "curl", "-f", "http://localhost:1337"]
     #   interval: 1m30s
@@ -32,40 +30,71 @@ services:
     #   start_period: 40s
     # deploy:
     #   replicas: 2
-    #   resources:
-    #     limits:
-    #       cpus: "0.1"
-    #       memory: 50M
-    # restart_policy:
-    #   condition: on-failure
-    #   delay: 5s
-    #   max_attempts: 3
-    #   window: 120s
+      # resources:
+      #   limits:
+      #     cpus: '0.50'
+      #     memory: 50M
+      #   reservations:
+      #     cpus: '0.25'
+      #     memory: 20M
+      # restart_policy:
+      #   condition: on-failure
+      #   delay: 5s
+      #   max_attempts: 3
+      #   window: 120s
+    restart: always # this is for docker-compose up - stack deploy uses restart_policy
+
     # entrypoint: ["npm", "run", "debug"] # overwrite entrypoint
     # build: . # if build arg not present, it will try to pull from registry
-
-  #service mongo
-  mongo:
+    # docker run -it --rm --name parse-server -p 1337:1337 --env-file .env --network=parse-server barakbd/parse-server:3-alpine
+  # ------------- service mongo -----------------------
+  mongo_36:
     container_name: mongo-3.6
     image: mongo:3.6
     env_file:
       - .env
     ports:
-      # - 27019:27017
-      - target: 27017 # inside container
-        published: 27018
-        protocol: tcp # tcp / udp
-        mode: ingress # use ingress for swarm load balancing
+      # short syntax
+      - 27018:27017
+      # long syntax
+      # - target: 27017 # inside container
+      #   published: 27018
+      #   protocol: tcp # tcp / udp
+      #   mode: host # use ingress for swarm load balancing
 
     volumes:
       # - ./mongo/data/db:/data/db
       - ./mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d
       - ./mongo/scripts:/scripts/
     networks:
-      - backend
+      - parse-server
 
-# docker run -it --rm --name mongo-3.6 --env-file .env -p 27018:27017 -v $(pwd)/mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d -v $(pwd)/mongo/scripts:/scripts mongo:3.6
+    # docker run -it --rm --name mongo_36 --env-file .env -p 27018:27017 -v $(pwd)/mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d -v $(pwd)/mongo/scripts:/scripts --network=parse-server mongo:3.6
 
+  # ------------- service postgres -----------------------
+  # postgres:
+  #   container_name: postgres-10
+  #   image: postgres:10-alpine
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     # - 5432:5432
+  #     - target: 5433 # inside container
+  #       published: 5432
+  #       protocol: tcp # tcp / udp
+  #       mode: host # use ingress for swarm load balancing
 
-networks:
-  backend:
+    # docker run -it --rm -p=5433:5432 --name=postgres_10 --env-file=.env --network=parse-server postgres:10-alpine
+
+  # ------------- service adminer -----------------------
+
+  # adminer:
+  #   container_name: adminer
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+
+networks: 
+  parse-server:
+# docker network create --attachable parse-server

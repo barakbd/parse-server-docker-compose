@@ -5,7 +5,7 @@
 # https://stackoverflow.com/questions/10743905/how-can-i-use-a-script-to-create-users-in-mongodb
 # https://hub.docker.com/_/mongo/
 # https://stackoverflow.com/questions/39444467/how-to-pass-environment-variable-to-mongo-script
-ls -l /scripts
+# ls -l /scripts
 echo ' ------ Creating parse database owner and  collection -------'
 
 mongo -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin admin <<EOF
@@ -21,7 +21,7 @@ db.createUser({
 use $MONGO_INITDB_DATABASE
 db.createCollection('$MONGO_INITDB_DATABASE_COLLECTION')
 EOF
-
+echo -e "----------- mogno setup completed -------------------\n"
 # This also works - need to map the scripts folder 
 # mongo -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin admin --eval "
 # var MONGO_INITDB_DATABASE='$MONGO_INITDB_DATABASE'
