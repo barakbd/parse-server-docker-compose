@@ -1,71 +1,128 @@
-version: '3.2'
+version: '3.4'
 
 services:
-
-  #service parse-server
-  parse-server:
-    container_name: parse-server
-    image: barakbd/parse-server:test
+  # ------------- service parse-server -----------------------
+  parse_server:
+    container_name: parse_server
+    # image: barakbd/parse-server:multi
+    image: parseplatform/parse-server
+    # image: barakbd/parse-server:3-alpine
     env_file: #not really needed as docker compose looks for .env by default
       - .env
-    environment: 
-      NODE_ENV: ${NODE_ENV}
-    # volumes: 
-      # - ./cloud:/parse-server/cloud
-      # - ./config:parse-server/config
+    volumes:
+      - ./parse/cloud:/parse-server/cloud
+      - ./parse/config:/parse-server/config
+      - ./parse/scripts:/parse-server/scripts
     ports:
-      - 1337:1337
+      # short syntax
+      # - 1337:1337
       # long syntax
-      # - target: ${PORT}
-      #   published: ${PORT}
-      #   protocol: tcp
-      #   mode: host
-    networks:
-      - backend
-    depends_on:
-      - mongo
+      - target: 1337
+        published: 1337
+        protocol: tcp
+        mode: host
+    # networks:
+    #   - parse_server_network
+    # depends_on:
+    #   - mongo_36
     # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:1337"]
+    #   test: ["CMD", "curl", "-f", "mongo_36", "||", "exit", "1"]
     #   interval: 1m30s
     #   timeout: 10s
     #   retries: 3
     #   start_period: 40s
+    # entrypoint: /bin/ls scripts
+    entrypoint: ['/parse-server/scripts/wait_for_mongo.sh']
+    # entrypoint: ls -l /parse-server/scripts/wait-for-mongo.sh
+    # command: ["&& ls -al"]
+    # command: env
+    command: node /parse-server/bin/parse-server
+    # command: ["whoami", , "ls", "-al", "scripts"]
     # deploy:
     #   replicas: 2
-    #   resources:
-    #     limits:
-    #       cpus: "0.1"
-    #       memory: 50M
+    # resources:
+    #   limits:
+    #     cpus: '0.50'
+    #     memory: 50M
+    #   reservations:
+    #     cpus: '0.25'
+    #     memory: 20M
     # restart_policy:
     #   condition: on-failure
     #   delay: 5s
     #   max_attempts: 3
     #   window: 120s
+    # restart: always # this is for docker-compose up - stack deploy uses restart_policy
     # entrypoint: ["npm", "run", "debug"] # overwrite entrypoint
-    # build: . # if build arg not present, it will try to pull from registry
+    # build:  # if build arg not present, it will try to pull from registry
+    # dockerfile: Dockerfile
+    # context: .
+    # docker run -it --rm --name parse_server -p 1337:1337 \
+    # --env-file .env --network=run_parse_server_network \
+    # -v $PWD/parse/cloud:/parse-server/cloud \
+    # -v $PWD/parse/config:/parse-server/config \
+    # -v $PWD/parse/scripts:/parse-server/scripts \
+    # --entrypoint /bin/sh \
+    # parseplatform/parse-server:latest scripts/wait_for_mongo.sh
+    # --entrypoint /parse-server/scripts/wait-for-mongo.sh \
 
-  #service mongo
-  mongo:
-    container_name: mongo-3.6
+  # ------------- service mongo -----------------------
+  mongo_36:
+    container_name: mongo_3.6
     image: mongo:3.6
     env_file:
       - .env
     ports:
-      # - 27019:27017
-      - target: 27017 # inside container
-        published: 27018
-        protocol: tcp # tcp / udp
-        mode: ingress # use ingress for swarm load balancing
+      # short syntax
+      - 27018:27017
+      # long syntax
+      # - target: 27017 # inside container
+      #   published: 27018
+      #   protocol: tcp # tcp / udp
+      #   mode: host # use ingress for swarm load balancing
 
     volumes:
       # - ./mongo/data/db:/data/db
       - ./mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d
       - ./mongo/scripts:/scripts/
-    networks:
-      - backend
-
-# docker run -it --rm --name mongo-3.6 --env-file .env -p 27018:27017 -v $(pwd)/mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d -v $(pwd)/mongo/scripts:/scripts mongo:3.6
-
-
-networks:
-  backend:
+    # networks:
+    #   - parse_server_network
+    # docker run -it --rm --name mongo_36 --env-file .env -p 27018:27017 \
+    # -v $(pwd)/mongo/docker-entrypoint-initdb:/docker-entrypoint-initdb.d \
+    # -v $(pwd)/mongo/scripts:/scripts --network=run_parse_server_network mongo:3.6
+  # ------------- service postgres -----------------------
+  # postgres:
+  #   container_name: postgres_10
+  #   image: postgres:10-alpine
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     # - 5432:5432
+  #     - target: 5433 # inside container
+  #       published: 5432
+  #       protocol: tcp # tcp / udp
+  #       mode: host # use ingress for swarm load balancing
+  # docker run -it --rm -p=5433:5432 --name=postgres_10 --env-file=.env --network=parse_server_network postgres:10-alpine
+  # ------------- service parse_dashboard -----------------------
+  # parse_dashboard:
+  #   container_name: parse-ashboard
+  #   image: parseplatform/parse-dashboard
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     # - 4040:4040
+  #     - target: 4040 # inside container
+  #       published: 4040
+  #       protocol: tcp # tcp / udp
+  #       mode: host # use ingress for swarm load balancing
+  # docker run -it --rm -p=4040:4040 --name=parse-ashboard --env-file=.env --network=parse_server_network parseplatform/parse-dashboard
+  # ------------- service adminer -----------------------
+  # adminer:
+  #   container_name: adminer
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+# networks:
+#   parse_server_network:
+# docker network create --attachable parse_server_network
